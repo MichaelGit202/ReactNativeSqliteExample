@@ -1,109 +1,183 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
+import React, { useState } from "react";
+import UserList from "../../components/userList";
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function TabTwoScreen() {
+export default function ItemModal() {
+  const { id } = useLocalSearchParams();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [editMode, setEditMode] = useState(false);
+  const [refreshSignal, setRefreshSignal] = useState(0); // key to reload UserList
+
+  const database = useSQLiteContext();
+
+  React.useEffect(() => {
+    const setupTable = async () => {
+      try {
+        await database.execAsync(`
+          CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            image TEXT
+          );
+        `);
+        console.log("✅ Users table ready");
+      } catch (e) {
+        console.error("Error creating users table:", e);
+      }
+    };
+
+    setupTable();
+  }, []);
+
+  React.useEffect(() => {
+    if (id) {
+      setEditMode(true);
+      loadData();
+    }
+  }, [id]);
+
+  const loadData = async () => {
+    const result = await database.getFirstAsync<{
+      id: number;
+      name: string;
+      email: string;
+    }>(`SELECT * FROM users WHERE id = ?`, [parseInt(id as string)]);
+    if (result) {
+      setName(result.name);
+      setEmail(result.email);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      await database.runAsync(
+        `INSERT INTO users (name, email, image) VALUES (?, ?, ?)`,
+        [name, email, ""]
+      );
+      console.log("Item saved successfully");
+      setRefreshSignal(prev => prev + 1); // refresh the list
+      resetForm();
+    } catch (error) {
+      console.error("Error saving item:", error);
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      await database.runAsync(
+        `UPDATE users SET name = ?, email = ? WHERE id = ?`,
+        [name, email, parseInt(id as string)]
+      );
+      console.log("Item updated successfully");
+      setRefreshSignal(prev => prev + 1); // refresh the list
+      resetForm();
+    } catch (error) {
+      console.error("Error updating item:", error);
+    }
+  };
+
+  const handleResetDatabase = async () => {
+    try {
+      await database.runAsync(`DELETE FROM users`);
+      console.log("Database reset");
+      setRefreshSignal(prev => prev + 1); // refresh the list
+    } catch (e) {
+      console.error("Error resetting DB:", e);
+    }
+  };
+
+  const resetForm = () => {
+    setName("");
+    setEmail("");
+    setEditMode(false);
+    //router.back();
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
+    <SafeAreaView style={styles.container}>
+      <Stack.Screen options={{ title: "Item Modal" }} />
+      <View style={{ gap: 20, marginVertical: 20 }}>
+        <TextInput
+          placeholder="Name"
+          value={name}
+          onChangeText={setName}
+          style={styles.textInput}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+        <TextInput
+          placeholder="Email"
+          value={email}
+          keyboardType="email-address"
+          onChangeText={setEmail}
+          style={styles.textInput}
+        />
+      </View>
+      <View style={{ flexDirection: "row", gap: 20 }}>
+        <TouchableOpacity
+          //onPress={() => router.back()}
+          style={[styles.button, { backgroundColor: "red" }]}
+        >
+          <Text style={styles.buttonText}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => (editMode ? handleUpdate() : handleSave())}
+          style={[styles.button, { backgroundColor: "blue" }]}
+        >
+          <Text style={styles.buttonText}>{editMode ? "Update" : "Save"}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        onPress={handleResetDatabase}
+        style={[styles.button, { backgroundColor: "gray", marginTop: 20 }]}
+      >
+        <Text style={styles.buttonText}>Reset Database</Text>
+      </TouchableOpacity>
+
+      <View style={styles.userList}>
+        <UserList refreshSignal={refreshSignal} />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  userList: {
+    margin: 20,
+    width: "100%",
+    flex: 1,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  container: {
+    flex: 1,
+    alignItems: "center",
+  },
+  textInput: {
+    borderWidth: 1,
+    padding: 10,
+    width: 300,
+    borderRadius: 5,
+    borderColor: "slategray",
+  },
+  button: {
+    height: 40,
+    width: 120,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+  },
+  buttonText: {
+    fontWeight: "bold",
+    color: "white",
   },
 });
