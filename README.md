@@ -1,50 +1,32 @@
-# Welcome to your Expo app 👋
+# ReactNativeSqliteExample
+ACM hackathon EXPO-SQLite example for react native
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# Let's create a Markdown (.md) file with the converted content.
 
-## Get started
+markdown_content = """
+# How to Make a React Native-SQLite Project for Android
 
-1. Install dependencies
+## 🎯 Goal  
+Create a React Native app that interfaces with a SQLite database.
 
-   ```bash
-   npm install
-   ```
+## 🛠️ Tools  
+- React (the library)  
+- Android Studio  
 
-2. Start the app
+## ✅ Prerequisites  
+- You know how to create a React Native project  
+- Android Studio is already installed  
 
-   ```bash
-    npx expo start
-   ```
+> ⚠️ **Disclaimer:**  
+There are many hardware dependencies and extra steps you might encounter to get a project like this working. It’s slightly more complicated than just downloading Node and running your app. You should create your own project and use my [GitHub repo](https://github.com/MichaelGit202/React-Presentation) as a reference.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 📥 Installation Steps
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### 1. Create Your React Native Project
 
-## Get a fresh project
-
-When you're ready, run:
+### 2. Install SQLite
 
 ```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+npm install --save react-native-sqlite-storage
